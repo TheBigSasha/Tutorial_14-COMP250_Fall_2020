@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A map that allows lookup of a value based on a key
@@ -9,32 +6,56 @@ import java.util.Set;
  * @param <V>   The thing to be looked up
  */
 public class BadMap<K, V> {
+    /**
+     * How many buckets there are by default
+     */
+    private static final int DEFAULT_SIZE = 10;
+    /**
+     * The ratio of groups to size of group.
+     *
+     * So if the size vs the number of buckets exceeds this number, we have to increase the number of buckets and change the hash
+     * algorithm to give values from 0 to the new number of buckets
+     */
+    private static final double LOAD_FACTOR = 0.7;
+
+    private ArrayList<LinkedList<BadPair<K,V>>> buckets;
+    private int numberOfBuckets;
+    private  int size = 0;
 
     /**
      * Creates a BadMap which is like a HashMap but not as good
      */
     public BadMap() {
-
+        buckets = new ArrayList<>();
+        numberOfBuckets = DEFAULT_SIZE;
+        for(int i = 0; i < numberOfBuckets; i++){
+            buckets.add(new LinkedList<BadPair<K,V>>());
+        }
     }
 
     /**
      * Test method
      */
     public static void main(String[] args) {
-        String[] strings = new String[]{"AIFD","SDGSDG","SDGSDGSD","SDGSDGSDG","SDGS","SDGSDGSDGSD","SDGSDGSDGS", "DS", "sgsadgsdagasdgsd","SDdssdsdsdsd","235123", "2e52352", "hekko", "gedfs", "gergerger", "gergaerygaeghfda", "gerwtq34t61234fa", "314","312513"};
-        BadMap<String, Integer> map = new BadMap<>();
+        BadMap<String, Integer> ageOfCeleb = new BadMap<>();
+        ageOfCeleb.put("Justin Bieber", 44);
+        ageOfCeleb.put("Ariana Vente", 28);
+        Integer[] ages = new Integer[]{44, 28};
 
-        for(String s : strings){
-            map.put(s, (int) Math.round(Math.random() * 1000));
+        if(ageOfCeleb.containsKey("Justin Bieber")){
+            System.out.println(ageOfCeleb.get("Justin Bieber"));
+        }
+        if(ageOfCeleb.containsKey("Jack Hughman")){
+            System.out.println(ageOfCeleb.get("Jack Hughman"));
         }
 
-        System.out.println("Size is" + map.size() + " Added strings list size is " + strings.length);
-        for(String s : strings){
-            System.out.print(map.get(s));
-            System.out.println( " Now removed " + map.remove(s));
-        }
+        BadMap<String, List<String>> moviesOfActor = new BadMap<>();
+        ArrayList<String> moviesOfJackHughman = new ArrayList<>();
+        moviesOfJackHughman.add("Les pas Miserables");
+        moviesOfJackHughman.add("The worst showman");
+        moviesOfActor.put("Jack Hughman", moviesOfJackHughman);
 
-        System.out.println("Size is " + map.size());
+        System.out.println(moviesOfActor.get("Jack Hughman"));
     }
 
     /**
@@ -42,12 +63,14 @@ public class BadMap<K, V> {
      * @return number of stuff in map
      */
     public int size() {
+        return size;
     }
 
     /**
      * Tells you if the map is empty
      */
     public boolean isEmpty() {
+        return size() == 0;
     }
 
     /**
@@ -56,12 +79,44 @@ public class BadMap<K, V> {
      * @param value thing to be looked up
      */
     public void put(K key, V value) {
+        int index = hashValue(key);
+        LinkedList<BadPair<K,V>> list = buckets.get(index);
+
+        //if the key is the same, we replace the thing with the same key
+        //Note that multiple keys can have the same hash value
+        // just as multiple names can start with A
+        //So its not a given that we have or don't have something to do with this key
+        boolean didReplace = false;
+        for(BadPair<K, V> pair : list){
+            if(pair.getKey().equals(key)){
+                pair.setValue(value);
+                didReplace = true;
+            }
+        }if(!didReplace){
+            list.add(new BadPair<>(key, value));
+            size++;
+        }
+
+        if((double) size / numberOfBuckets > LOAD_FACTOR) rehash();
     }
 
     /**
      * Resizes the size of the ArrayList that is the basis of the map
      */
     private void rehash() {
+        ArrayList<LinkedList<BadPair<K,V>>> old = buckets;
+        buckets = new ArrayList<>();
+        numberOfBuckets *=2;
+        size = 0;
+        for(int i = 0; i < numberOfBuckets; i++){
+            buckets.add(new LinkedList<>());
+        }
+
+        for(LinkedList<BadPair<K,V>> list : old){
+            for(BadPair<K,V> pair : list){
+                put(pair.getKey(), pair.getValue());
+            }
+        }
     }
 
     /**
@@ -70,23 +125,54 @@ public class BadMap<K, V> {
      * @return      value of thing that was removed
      */
     public V remove(K key) {
+        int indexAtBucket = hashValue(key);
+        LinkedList<BadPair<K,V>> list = buckets.get(indexAtBucket);
+
+        //Find the thing we oughtta remove
+        BadPair<K,V> toRemove = null;
+        for(BadPair<K,V> pair : list){
+            if(pair.getKey().equals(key)) toRemove = pair;
+        }
+
+        //If found, remove it
+        if(toRemove != null){
+            list.remove(toRemove);
+            size--;
+            return toRemove.getValue();
+        }
+
+        //If not found, return null
+        return null;
     }
 
-    /**
+    /**O(1) sorta, except that it is actually bounded by the length of the list which is bounded by the load factor
+     *
      * Retrieves the item corresponding to the given key
      * @param key   the key of the thing to get
      * @return      the value corresponding to the key
      */
     public V get(K key) {
+        int indexAtBucket = hashValue(key);
+        LinkedList<BadPair<K,V>> list = buckets.get(indexAtBucket);
+
+        //Find the thing we oughtta remove
+        for(BadPair<K,V> pair : list){
+            if(pair.getKey().equals(key)) return pair.getValue();
+        }
+
+        return null;
+
     }
 
     /**
+     * O(1)
      * Gets the index for use in the ArrayList for a given key
      * @param key   Thing to have its index acquired
      * @return      Index of thing
      */
     private int hashValue(K key) {
-
+        int hashValue = Math.abs(key.hashCode());   //This genrates a unique number for each object we put it through
+        return hashValue % numberOfBuckets; //This ensures that the output is less than the maximum index of our array
     }
 
     /**
@@ -95,7 +181,18 @@ public class BadMap<K, V> {
      * @return      true if this contains a value corresponding to key
      */
     public boolean containsKey(K key) {
+        boolean contains = false;
+        int indexAtBucket = hashValue(key);
+        LinkedList<BadPair<K,V>> list = buckets.get(indexAtBucket);
 
+        //Find the thing we oughtta remove
+        for(BadPair<K,V> pair : list){
+            if (pair.getKey().equals(key)) {
+                contains = true;
+                break;
+            }
+        }
+        return contains;
     }
 
     /**
@@ -103,7 +200,13 @@ public class BadMap<K, V> {
      * @return a set of the keys in this map
      */
     public Set<K> keys() {
-
+        Set<K> output = new HashSet<>();
+        for(LinkedList<BadPair<K,V>> list : buckets){
+            for(BadPair<K,V> pair : list){
+                output.add(pair.getKey());
+            }
+        }
+        return output;
     }
 
     /**
@@ -111,7 +214,13 @@ public class BadMap<K, V> {
      * @return a set of values in this map
      */
     public Set<V> values() {
-
+        Set<V> output = new HashSet<>();
+        for(LinkedList<BadPair<K,V>> list : buckets){
+            for(BadPair<K,V> pair : list){
+                output.add(pair.getValue());
+            }
+        }
+        return output;
     }
 
 

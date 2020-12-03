@@ -18,17 +18,25 @@ class Graph<E> {
     public void addEdgeBidirectional(E from, E to){
     }
 
-    public Set<E> vertices() {  }
+    public Set<E> vertices() {
+        return null;
+    }
 
     public Set<E> edges(E vertex){
+        return null;
     }
+
 
     public int numEdges(boolean bidirection) {
+        return 0;
     }
 
-    public boolean hasVertex(E vertex) {  }
+    public boolean hasVertex(E vertex) {
+        return false;
+    }
 
     public boolean hasEdge(E from, E to) {
+        return false;
     }
 
     public static void main(String[] args) {
