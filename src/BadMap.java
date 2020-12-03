@@ -1,5 +1,5 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A map that allows lookup of a value based on a key
@@ -167,6 +167,51 @@ public class BadMap<K, V> {
         int hashValue = Math.abs(key.hashCode());
         return hashValue % numberOfBuckets;
     }
+
+    /**
+     * checks presence of items in keys
+     * @param key   the key to check
+     * @return      true if this contains a value corresponding to key
+     */
+    public boolean containsKey(K key) {
+        boolean contains = false;
+        for(BadPair<K,V> pair : buckets.get(hashValue(key))){
+            if (pair.getKey().equals(key)) {
+                contains = true;
+                break;
+            }
+        }
+        return contains;
+    }
+
+    /**
+     * Gets all of the keys in this map.
+     * @return a set of the keys in this map
+     */
+    public Set<K> keys() {
+        Set<K> set = new HashSet<>();
+        for(LinkedList<BadPair<K,V>> list : buckets){
+            for(BadPair<K,V> pair : list){
+                set.add(pair.getKey());
+            }
+        }
+        return set;
+    }
+
+    /**
+     * Gets the values in this map
+     * @return a set of values in this map
+     */
+    public Set<V> values() {
+        Set<V> set = new HashSet<>();
+        for(LinkedList<BadPair<K,V>> list : buckets){
+            for(BadPair<K,V> pair : list){
+                set.add(pair.getValue());
+            }
+        }
+        return set;
+    }
+
 
     /**
      * A simple class, like a Tuple in Python sort of
