@@ -8,45 +8,27 @@ class Graph<E> {
     private final BadMap<E, List<E>> edges = new BadMap<>();
 
     public void addVertex(E vertex) {
-        edges.put(vertex, new LinkedList<>());
+
     }
 
     public void addEdge(E from, E to) {
-        if (!edges.containsKey(from)) addVertex(from);
-        if (!edges.containsKey(to)) addVertex(to);
-        edges.get(from).add(to);
+
     }
 
     public void addEdgeBidirectional(E from, E to){
-        if (!edges.containsKey(from)) addVertex(from);
-        if (!edges.containsKey(to)) addVertex(to);
-        edges.get(from).add(to);
-        edges.get(to).add(from);
-
     }
 
-    public Set<E> vertices() { return edges.keys(); }
+    public Set<E> vertices() {  }
 
-    public Set<E> edges(E vertex) {
-        return new HashSet<>(this.edges.get(vertex));
+    public Set<E> edges(E vertex){
     }
 
     public int numEdges(boolean bidirection) {
-        int edges = 0;
-        for (E v : this.edges.keys()) {
-            edges += this.edges.get(v).size();
-        }
-        if (bidirection) {
-            edges = edges / 2;
-        }
-        return edges;
-
     }
 
-    public boolean hasVertex(E vertex) { return edges.containsKey(vertex); }
+    public boolean hasVertex(E vertex) {  }
 
     public boolean hasEdge(E from, E to) {
-        return (edges.get(from).contains(to));
     }
 
     public static void main(String[] args) {

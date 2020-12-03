@@ -9,23 +9,12 @@ import java.util.Set;
  * @param <V>   The thing to be looked up
  */
 public class BadMap<K, V> {
-    private static final int DEFAULT_SIZE = 5;
-    private static final double LOAD_FACTOR = 0.5;
-
-    private ArrayList<LinkedList<BadPair<K, V>>> buckets;
-    private int numberOfBuckets;
-    private int size = 0;
 
     /**
      * Creates a BadMap which is like a HashMap but not as good
      */
     public BadMap() {
-        buckets = new ArrayList<>(DEFAULT_SIZE);
-        numberOfBuckets = DEFAULT_SIZE;
 
-        for (int i = 0; i < numberOfBuckets; i++) {
-            buckets.add(new LinkedList<>());                  //This is to fill the array
-        }
     }
 
     /**
@@ -46,8 +35,6 @@ public class BadMap<K, V> {
         }
 
         System.out.println("Size is " + map.size());
-
-
     }
 
     /**
@@ -55,14 +42,12 @@ public class BadMap<K, V> {
      * @return number of stuff in map
      */
     public int size() {
-        return size;
     }
 
     /**
      * Tells you if the map is empty
      */
     public boolean isEmpty() {
-        return size() == 0;
     }
 
     /**
@@ -71,45 +56,12 @@ public class BadMap<K, V> {
      * @param value thing to be looked up
      */
     public void put(K key, V value) {
-        //Get list in O(1)
-        int bucketIndex = hashValue(key);
-        LinkedList<BadPair<K, V>> atIDX = buckets.get(bucketIndex);
-
-        //Replace if present
-        boolean didReplace = false;
-        for(BadPair<K,V> pair : atIDX){
-            if(pair.getKey().equals(key)) {
-                pair.setValue(value);
-                didReplace = true;
-            }
-        }
-
-        //Add if not present
-        if(!didReplace){
-            atIDX.add(new BadPair<>(key, value));
-            size++;
-        }
-
-        //Resize if needed
-        if ((double) size / numberOfBuckets >= LOAD_FACTOR) rehash();
-
     }
 
     /**
      * Resizes the size of the ArrayList that is the basis of the map
      */
     private void rehash() {
-        ArrayList<LinkedList<BadPair<K, V>>> temp = buckets;
-        buckets = new ArrayList<>();
-        numberOfBuckets = 2 * numberOfBuckets;
-        size = 0;
-        for (int i = 0; i < numberOfBuckets; i++)
-            buckets.add(new LinkedList<>());
-        for(LinkedList<BadPair<K,V>> list : temp) {
-            for (BadPair<K, V> item : list) {
-                put(item.getKey(), item.getValue());
-            }
-        }
     }
 
     /**
@@ -118,25 +70,6 @@ public class BadMap<K, V> {
      * @return      value of thing that was removed
      */
     public V remove(K key) {
-        //O(1) lookup
-        int bucketIndex = hashValue(key);
-        LinkedList<BadPair<K, V>> atIDXList = buckets.get(bucketIndex);
-
-        BadPair<K,V> toRemove = null;
-        for(BadPair<K,V> pair : atIDXList){
-            if(pair.getKey().equals(key)){
-                toRemove = pair;
-            }
-        }
-
-        if(toRemove == null){
-            return null;
-        }else {
-            atIDXList.remove(toRemove);
-
-            size--;
-            return toRemove.getValue();
-        }
     }
 
     /**
@@ -145,19 +78,6 @@ public class BadMap<K, V> {
      * @return      the value corresponding to the key
      */
     public V get(K key) {
-        //Hash lookup (O(1))
-        int bucketIndex = hashValue(key);
-        LinkedList<BadPair<K, V>> atIDXList = buckets.get(bucketIndex);
-
-        //In the case of multiple entries at this hash value, iterate thru (O(number of items at this index))
-        for(BadPair<K,V> pair : atIDXList){
-            if(pair.getKey().equals(key)){
-                return pair.getValue();
-            }
-        }
-
-        return null;
-        //throw new NoSuchElementException("Key " + key.toString() +" does not correspond to a value");
     }
 
     /**
@@ -166,8 +86,7 @@ public class BadMap<K, V> {
      * @return      Index of thing
      */
     private int hashValue(K key) {
-        int hashValue = Math.abs(key.hashCode());
-        return hashValue % numberOfBuckets;
+
     }
 
     /**
@@ -176,14 +95,7 @@ public class BadMap<K, V> {
      * @return      true if this contains a value corresponding to key
      */
     public boolean containsKey(K key) {
-        boolean contains = false;
-        for(BadPair<K,V> pair : buckets.get(hashValue(key))){
-            if (pair.getKey().equals(key)) {
-                contains = true;
-                break;
-            }
-        }
-        return contains;
+
     }
 
     /**
@@ -191,13 +103,7 @@ public class BadMap<K, V> {
      * @return a set of the keys in this map
      */
     public Set<K> keys() {
-        Set<K> set = new HashSet<>();
-        for(LinkedList<BadPair<K,V>> list : buckets){
-            for(BadPair<K,V> pair : list){
-                set.add(pair.getKey());
-            }
-        }
-        return set;
+
     }
 
     /**
@@ -205,13 +111,7 @@ public class BadMap<K, V> {
      * @return a set of values in this map
      */
     public Set<V> values() {
-        Set<V> set = new HashSet<>();
-        for(LinkedList<BadPair<K,V>> list : buckets){
-            for(BadPair<K,V> pair : list){
-                set.add(pair.getValue());
-            }
-        }
-        return set;
+
     }
 
 
